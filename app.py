@@ -1,6 +1,6 @@
 import requests
 import os
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 
 from dotenv import load_dotenv
@@ -12,6 +12,7 @@ API_KEY = os.getenv("KEY")
 app = Flask(__name__)
 app.config['DEBUG'] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///weather.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
@@ -21,27 +22,22 @@ class City(db.Model):
     name = db.Column(db.String(30), nullable=False)
 
 
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    if request.method == "POST":
-        new_city = request.form.get('city')
 
-        if new_city:
-            new_city_obj = City(name=new_city)
-            db.session.add(new_city_obj)
-            db.session.commit()
-
-
-    cities = City.query.all()
-
+def get_weather_data(city):
     api = 'http://api.openweathermap.org/data/2.5/weather?q={}&units=metric&appid={}'
+    url = api.format(city, API_KEY)
+    r = requests.get(url).json()
 
+    return r
+
+
+@app.route('/')
+def index_get():
+    cities = City.query.all()
     weather_data = []
 
     for city in cities:
-
-        url = api.format(city.name, API_KEY)
-        r = requests.get(url).json()
+        r = get_weather_data(city.name)
 
         weather = {
                 'city' : city.name,
@@ -53,6 +49,27 @@ def index():
         weather_data.append(weather)
 
     return render_template('weather.html', weather_data=weather_data)
+
+@app.route('/', methods=['POST'])
+def index_post():
+    error_msg = ""
+    new_city = request.form.get('city')
+
+    if new_city:
+        existing_city = City.query.filter_by(name=new_city).first()
+
+        if not existing_city:
+            new_city_data = get_weather_data(new_city)
+            if new_city_data['cod'] == 200:
+                new_city_obj = City(name=new_city)
+                db.session.add(new_city_obj)
+                db.session.commit()
+            else:
+                error_msg = "City does not exist in the world!"
+        else:
+            error_msg = "City already exists in the database!"
+
+    return redirect(url_for('index_get'))
 
 
 if __name__ == '__main__':
