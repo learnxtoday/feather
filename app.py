@@ -1,6 +1,6 @@
 import requests
 import os
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 
 from dotenv import load_dotenv
@@ -21,8 +21,17 @@ class City(db.Model):
     name = db.Column(db.String(30), nullable=False)
 
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
+    if request.method == "POST":
+        new_city = request.form.get('city')
+
+        if new_city:
+            new_city_obj = City(name=new_city)
+            db.session.add(new_city_obj)
+            db.session.commit()
+
+
     cities = City.query.all()
 
     api = 'http://api.openweathermap.org/data/2.5/weather?q={}&units=metric&appid={}'
