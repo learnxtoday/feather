@@ -1,33 +1,50 @@
 import requests
 import os
 from flask import Flask, render_template
-#from flask_sqlalchemy import SQLAlchemy
+from flask_sqlalchemy import SQLAlchemy
+
 from dotenv import load_dotenv
 load_dotenv()
 
 API_KEY = os.getenv("KEY")
 
+
 app = Flask(__name__)
+app.config['DEBUG'] = True
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///weather.db'
+
+db = SQLAlchemy(app)
+
+
+class City(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(30), nullable=False)
+
 
 @app.route('/')
 def index():
+    cities = City.query.all()
+
     api = 'http://api.openweathermap.org/data/2.5/weather?q={}&units=metric&appid={}'
-    city = 'Patna'
 
-    url = api.format(city, API_KEY)
-    weather_data = requests.get(url).json()
+    weather_data = []
 
-    data = {
-            'city' : city,
-            'temperature' : weather_data['main']['temp'],
-            'description' :weather_data['weather'][0]['description'],
-            'icon' : weather_data['weather'][0]['icon'],
-            }
+    for city in cities:
 
-    print(data)
+        url = api.format(city.name, API_KEY)
+        r = requests.get(url).json()
 
-    return render_template('weather.html', data=data)
+        weather = {
+                'city' : city.name,
+                'temperature' : r['main']['temp'],
+                'description' :r['weather'][0]['description'],
+                'icon' : r['weather'][0]['icon'],
+                }
+
+        weather_data.append(weather)
+
+    return render_template('weather.html', weather_data=weather_data)
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
