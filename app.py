@@ -11,8 +11,8 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    api = 'http://api.openweathermap.org/data/2.5/weather?q={}&appid={}'
-    city = 'Las Vegas'
+    api = 'http://api.openweathermap.org/data/2.5/weather?q={}&units=metric&appid={}'
+    city = 'Patna'
 
     url = api.format(city, API_KEY)
     weather_data = requests.get(url).json()
@@ -24,8 +24,9 @@ def index():
             'icon' : weather_data['weather'][0]['icon'],
             }
 
+    print(data)
 
-    return render_template('weather.html')
+    return render_template('weather.html', data=data)
 
 
 if __name__ == '__main__':
