@@ -1,23 +1,29 @@
 import requests
+import os
 from flask import Flask, render_template
-from flask_sqlalchemy import SQLAlchemy
+#from flask_sqlalchemy import SQLAlchemy
+from dotenv import load_dotenv
+load_dotenv()
 
+API_KEY = os.getenv("KEY")
 
 app = Flask(__name__)
 
 @app.route('/')
 def index():
-    api = 'http://api.openweathermap.org/data/2.5/weather?q={}&appid=2d9b0c570950eb4352f90aef452af0ae'
-    city = 'Patna'
+    api = 'http://api.openweathermap.org/data/2.5/weather?q={}&appid={}'
+    city = 'Las Vegas'
 
-    if " " in city:
-        city.replace(" ", "%20")
-
-    url = api.format(city)
+    url = api.format(city, API_KEY)
     weather_data = requests.get(url).json()
-    print('bitch ... \n\n\n ~>')
-    for _ in weather_data:
-        print(_)
+
+    data = {
+            'city' : city,
+            'temperature' : weather_data['main']['temp'],
+            'description' :weather_data['weather'][0]['description'],
+            'icon' : weather_data['weather'][0]['icon'],
+            }
+
 
     return render_template('weather.html')
 
