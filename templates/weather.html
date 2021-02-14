@@ -34,12 +34,26 @@
 									</button>
 								</div>
 							</div>
+							{% with messages=get_flashed_messages(with_categories=true) %}
+							{% if messages %}
+									{% for category, message in messages %}
+											{% set message_class = 'is-success' %}
+
+											{% if category == 'error' %}
+												{% set message_class= 'is-danger' %}
+											{% endif %}
+
+											<div class="notification {{ message_class }}">
+												{{ message }}
+											</div>
+									{% endfor %}
+							{% endif %}
+							{% endwith %}
 						</form>
 					</div>
 				</div>
 			</div>
 		</section>
-
 
 		<section class="section">
 			<div class="container">

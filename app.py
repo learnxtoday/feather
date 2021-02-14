@@ -1,6 +1,6 @@
 import requests
 import os
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 
 from dotenv import load_dotenv
@@ -13,6 +13,7 @@ app = Flask(__name__)
 app.config['DEBUG'] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///weather.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = 'this-too-shall-pass'
 
 db = SQLAlchemy(app)
 
@@ -68,6 +69,12 @@ def index_post():
                 error_msg = "City does not exist in the world!"
         else:
             error_msg = "City already exists in the database!"
+
+    if error_msg:
+        flash(error_msg, 'error')
+    else:
+        flash("City added successfully")
+
 
     return redirect(url_for('index_get'))
 
