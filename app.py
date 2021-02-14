@@ -75,9 +75,17 @@ def index_post():
     else:
         flash("City added successfully")
 
-
     return redirect(url_for('index_get'))
 
+@app.route('/delete/<name>')
+def delete_city(name):
+    city = City.query.filter_by(name=name).first()
+    db.session.delete(city)
+    db.session.commit()
+
+    # since I am in the route, i can reefrence the object as it exists even if city data is deleted. but only while the link is active/in session
+    flash(f'Successfully deleted { city.name }', 'success')
+    return redirect(url_for('index_get'))
 
 if __name__ == '__main__':
     app.run()
