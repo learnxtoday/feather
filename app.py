@@ -1,3 +1,13 @@
+"""
+All the views for our weather application
+Currently we support the following 3 views:
+
+1. **Home** - The main view for weather (jump to section in [[app.py#home]] )
+2. **Add** - called to add a new city (jump to section in [[app.py#add]] )
+3. **Delete** - called to delete a city's weather data (jump to section in [[app.py#delete]] )
+
+"""
+
 import requests
 import os
 from flask import Flask, render_template, request, redirect, url_for, flash
@@ -17,8 +27,15 @@ app.config['SECRET_KEY'] = 'this-too-shall-pass'
 
 db = SQLAlchemy(app)
 
+# === Models for Weather app ===
 
 class City(db.Model):
+    """
+    The City class defines the main storage point for weather.
+    Each entry has two fields:
+    id - stores the primary key ID of the city
+    city - used to display the name of the city on screen
+    """
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(30), nullable=False)
 
@@ -31,6 +48,7 @@ def get_weather_data(city):
 
     return r
 
+# === home ===
 
 @app.route('/')
 def index_get():
@@ -50,6 +68,8 @@ def index_get():
         weather_data.append(weather)
 
     return render_template('weather.html', weather_data=weather_data)
+
+# === add ===
 
 @app.route('/', methods=['POST'])
 def index_post():
@@ -76,6 +96,8 @@ def index_post():
         flash("City added successfully")
 
     return redirect(url_for('index_get'))
+
+# === delete ===
 
 @app.route('/delete/<name>')
 def delete_city(name):
