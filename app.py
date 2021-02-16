@@ -52,6 +52,12 @@ def get_weather_data(city):
 
 @app.route('/')
 def index_get():
+    """
+    The cities are queried from the databse and a GET request is sent to the
+    openweathermap API with the city and API key as parameters.
+    The need-to-know details are extracted from the JSON response and appended to a list.
+    Which in turn in parsed to the template using Jinja2.
+    """
     cities = City.query.all()
     weather_data = []
 
